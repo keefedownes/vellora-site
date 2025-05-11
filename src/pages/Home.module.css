@@ -1,0 +1,277 @@
+/* Hero Section */
+.hero {
+  height: 100vh;
+  background-image: url('/logo-bg.svg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+}
+
+/* Scroll Button */
+.scrollBtn {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: none;
+  border: none;
+  color: white;
+  font-family: sans-serif;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  animation: bounce 2s infinite;
+  padding: 0;
+}
+
+.scrollText {
+  font-size: 1rem;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+  opacity: 0.9;
+}
+
+.arrow {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+/* Bouncy Scroll Animation */
+@keyframes bounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-10px); }
+}
+
+/* Profiles Section */
+.profiles {
+  min-height: 100vh;
+  background-color: #f9f9f9;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.sectionTitle {
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Profile Grid Layout */
+.profileGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  padding: 2rem 0;
+  max-width: 1000px;
+  margin: 0 auto;
+  align-items: stretch;
+  min-height: calc(100vh - 8rem);
+}
+
+/* Profile Tile Styling */
+.profileTile {
+  background-color: #048451;
+  color: white;
+  border-radius: 16px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  text-align: left;
+  height: 100%;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.profileTile:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
+}
+
+.profileTile h3 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.profileTile p {
+  margin-bottom: 1.5rem;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.callout {
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.85rem;
+  text-align: center;
+  color: #f0f0f0;
+}
+
+/* CTA Button Styling */
+.cta {
+  margin-top: 1.5rem;
+  padding: 0.75rem 1.5rem;
+  background: white;
+  color: #048451;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  text-align: center;
+  display: inline-block;
+}
+
+.cta:hover {
+  background: #eaeaea;
+}
+
+/* Why & How Sections */
+.whySection {
+  background-color: #ffffff;
+  padding: 4rem 2rem;
+}
+
+.whyContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.whyBlock,
+.howBlock {
+  background: #f9f9f9;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.whyBlock h2,
+.howBlock h2 {
+  margin-bottom: 1rem;
+  font-size: 1.8rem;
+}
+
+.whyBlock p,
+.howBlock p {
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+.whyBlock ul,
+.howBlock ul {
+  padding-left: 1.5rem;
+  line-height: 1.6;
+}
+
+/* Feature List Styling */
+.featureList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.featureList li {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+.featureIcon {
+  width: 20px;
+  height: 20px;
+  margin-right: 0.75rem;
+}
+
+/* Support Section */
+.supportSection {
+  background-color: #048451;
+  color: white;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.supportContainer {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.supportContainer h2 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.supportContainer p {
+  margin-bottom: 2rem;
+}
+
+/* FAQ Grid Layout */
+.faqGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.faqItem {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 1rem;
+  border-radius: 8px;
+  text-align: left;
+}
+
+.faqItem h3 {
+  margin-bottom: 0.5rem;
+}
+
+/* Typography */
+.logoMain {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 800;
+}
+
+.logoSub {
+  font-family: 'Quicksand', sans-serif;
+  font-weight: 300;
+  letter-spacing: 0.2em;
+}
+
+.heading {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 800;
+  margin-bottom: 1rem;
+}
+
+.button {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 800;
+}
+
+.badge {
+  display: inline-block;
+  background: white;
+  color: #048451;
+  font-size: 0.85rem;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 1.5rem;
+  align-self: flex-start;
+  transform: rotate(-5deg);
+}
+
+.highlight .badge {
+  background: #ffffff;
+  color: #048451;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transform: rotate(5deg);
+}
