@@ -17,6 +17,7 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
+  "types":["node"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "src/pages/api/checkout.ts"],
   "exclude": ["node_modules"]
 }

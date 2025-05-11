@@ -2,10 +2,17 @@ import Stripe from 'stripe';
 import { nanoid } from 'nanoid';
 import supabase from '../../supabase';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2022-11-15' });
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+if (!stripeSecretKey) {
+  throw new Error('STRIPE_SECRET_KEY is not set in environment variables.');
+}
+
+const stripe = new Stripe(stripeSecretKey, { apiVersion: '2022-11-15' });
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).end('Method Not Allowed');
+  if (req.method !== 'POST') {
+    return res.status(405).end('Method Not Allowed');
+  }
 
   const { plan } = req.body;
 
@@ -29,20 +36,25 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Failed to store setup code.' });
   }
 
-  const session = await stripe.checkout.sessions.create({
-    payment_method_types: ['card'],
-    line_items: [{
-      price_data: {
-        currency: 'gbp',
-        product_data: { name: pricing[plan].name },
-        unit_amount: pricing[plan].amount,
-      },
-      quantity: 1,
-    }],
-    mode: 'payment',
-    success_url: `https://yourdomain.com/setup?code=${setupCode}`,
-    cancel_url: 'https://yourdomain.com/cancel`,
-  });
+  try {
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [{
+        price_data: {
+          currency: 'gbp',
+          product_data: { name: pricing[plan].name },
+          unit_amount: pricing[plan].amount,
+        },
+        quantity: 1,
+      }],
+      mode: 'payment',
+      success_url: `https://withvellora.com/setup?code=${setupCode}`,
+      cancel_url: 'https://withvellora.com/cancel',
+    });
 
-  res.status(200).json({ id: session.id });
+    res.status(200).json({ id: session.id });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to create checkout session.' });
+  }
 }
