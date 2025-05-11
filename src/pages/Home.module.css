@@ -9,7 +9,7 @@
   overflow: visible;
   line-height: 1.2;
   letter-spacing: normal;
-  padding-bottom: 5vh; /* Add breathing room to avoid cutting text */
+  padding-bottom: 0vh; /* Add breathing room to avoid cutting text */
 }
 
 /* Scroll Button */
@@ -95,9 +95,13 @@
 }
 
 .profileTile h3 {
-  font-size: 1.5rem;
+  font-size: 2rem; /* Bigger */
   margin-bottom: 1rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
+
 
 .profileTile p {
   margin-bottom: 1.5rem;
@@ -136,7 +140,7 @@
 /* Why & How Sections */
 .whySection {
   background-color: #ffffff;
-  padding: 4rem 2rem;
+  
 }
 
 .whyContainer {
@@ -262,36 +266,57 @@
   display: inline-block;
   background: white;
   color: #048451;
-  font-size: 0.85rem;
-  padding: 0.5rem 1rem;
+  font-size: 1rem; /* Increased */
+  padding: 0.6rem 1.4rem; /* Larger padding */
   border-radius: 999px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
   font-weight: bold;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 1.5rem;
+  letter-spacing: 0.08em;
+  margin-bottom: 2rem; /* More spacing below */
   align-self: flex-start;
-  transform: rotate(-5deg);
+  transform: rotate(-4deg);
 }
 
 .highlight .badge {
-  background: #ffffff;
-  color: #048451;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  transform: rotate(5deg);
+  transform: rotate(4deg);
 }
+
 
 /* Mobile Specific Adjustments */
 @media (max-width: 768px) {
   .sectionTitle {
-    opacity: 0.9 !important;
+    opacity: 1 !important;
+    font-size: 2.2rem;
+    color: #171717; /* or your preferred dark tone */
   }
+}
+
 
   .hero {
     background-size: contain;
     background-position: center center;
     background-repeat: no-repeat;
     background-color: #048451;
-    padding-bottom: 10vh; /* Extra space for better visibility on small screens */
-  }
+    }
+
+.price {
+  margin-top: 1.5rem;
+  font-size: 2rem;
+  font-weight: bold;
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+}
+
+.priceValue {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.pricePeriod {
+  font-size: 1rem;
+  font-weight: normal;
+  opacity: 0.8;
 }

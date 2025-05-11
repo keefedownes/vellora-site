@@ -58,7 +58,7 @@ export default function Home() {
               <li><img src="/icons/check-circle.svg" alt="Check" className={styles.featureIcon} /> No tech knowledge needed</li>
               <li><img src="/icons/check-circle.svg" alt="Check" className={styles.featureIcon} /> Safe human-like actions</li>
             </ul>
-            <p className={styles.price}>£12.99/month</p>
+            <p className={styles.price}><span className={styles.priceValue}>£12.99</span><span className={styles.pricePeriod}>/month</span></p>
             <p className={styles.callout}>No risk. Cancel anytime.</p>
             <button className={`${styles.cta} button`} onClick={() => handleCheckout("grower")}>Get Started</button>
           </div>
@@ -75,7 +75,7 @@ export default function Home() {
               <li><img src="/icons/gear.svg" alt="Custom Limits" className={styles.featureIcon} /> Custom daily limits</li>
               <li><img src="/icons/chart-line-up.svg" alt="Growth Reports" className={styles.featureIcon} /> Detailed growth reports</li>
             </ul>
-            <p className={styles.price}>£29.99/month</p>
+            <p className={styles.price}><span className={styles.priceValue}>£29.99</span><span className={styles.pricePeriod}>/month</span></p>
             <p className={styles.callout}>Priority support. Cancel anytime.</p>
             <button className={`${styles.cta} button`} onClick={() => handleCheckout("bloomer")}>Start Growing</button>
           </div>
