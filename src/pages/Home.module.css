@@ -291,6 +291,7 @@
     background-size: contain;
     background-position: center center;
     background-repeat: no-repeat;
+    background-color: #048451;
     padding-bottom: 10vh; /* Extra space for better visibility on small screens */
   }
 }
