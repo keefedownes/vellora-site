@@ -24,25 +24,51 @@ export default function Home() {
   };
 
   return (
-    <>
+    <main className={styles.scrollContainer}>
       {/* Hero Section */}
-      <div className={styles.hero}>
+      <section className={styles.hero}>
         <button className={styles.scrollBtn} onClick={scrollToProfiles}>
           <span className={styles.scrollText}>Scroll Down</span>
           <span className={styles.arrow}>↓</span>
         </button>
-      </div>
+      </section>
 
       {/* Why Vellora Section */}
       <section className={styles.whySection}>
-        {/* Content unchanged */}
+        <div className={styles.whyContainer}>
+          <div className={styles.whyBlock}>
+            <h2 className="heading">Why Vellora?</h2>
+            <p>
+              Vellora prioritises <strong>human-like actions</strong> that mimic real user behaviour,
+              making your growth appear <strong>as natural as possible</strong>. Our system is designed for
+              <strong> super stealth</strong>, operating safely in the background like a <strong>real person
+              managing your account</strong>—without the cost or risk of hiring someone.
+            </p>
+            <ul className={styles.featureList}>
+              <li><img src="/icons/mask.png" alt="Stealth Icon" className={styles.featureIcon} /> Stealth-first, human-like behaviour</li>
+              <li><img src="/icons/tick.png" alt="Safe Icon" className={styles.featureIcon} /> Safe, realistic engagement patterns</li>
+              <li><img src="/icons/cog.png" alt="Custom Strategy Icon" className={styles.featureIcon} /> Customisable strategies tailored to your niche</li>
+              <li><img src="/icons/telegram.png" alt="Telegram Support Icon" className={styles.featureIcon} /> Fully managed via Telegram for your convenience</li>
+            </ul>
+          </div>
+
+          {/* How It Works Section */}
+          <div className={styles.howBlock}>
+            <h2 className="heading">How It Works</h2>
+            <ul className={styles.featureList}>
+              <li><img src="/icons/connect.png" alt="Connect Icon" className={styles.featureIcon} /> Connect your account</li>
+              <li><img src="/icons/goals.png" alt="Set Goals Icon" className={styles.featureIcon} /> Set your goals (growth style / niches)</li>
+              <li><img src="/icons/runssilently.png" alt="Silent Running Icon" className={styles.featureIcon} /> Vellora runs for you silently</li>
+              <li><img src="/icons/logresultscelebrate.png" alt="Track and Celebrate Icon" className={styles.featureIcon} /> Track, log, and celebrate results</li>
+            </ul>
+          </div>
+        </div>
       </section>
 
       {/* Pricing Section */}
-      <div ref={profileRef} className={styles.profiles}>
+      <section ref={profileRef} className={styles.profiles}>
         <h2 className={`${styles.sectionTitle} heading`}>How do you want to grow?</h2>
         <div className={styles.profileGrid}>
-
           {/* Grower Plan */}
           <div className={styles.profileTile}>
             <div className={styles.badge}>Best for Beginners</div>
@@ -52,8 +78,6 @@ export default function Home() {
             <ul className={styles.featureList}>
               <li><img src="/icons/check-circle.svg" alt="Check" className={styles.featureIcon} /> Limited likes, follows, unfollows</li>
               <li><img src="/icons/x-circle.svg" alt="No Comments" className={styles.featureIcon} /> No comments or DMs</li>
-            </ul>
-            <ul className={styles.featureList}>
               <li><img src="/icons/check-circle.svg" alt="Check" className={styles.featureIcon} /> Fully managed setup</li>
               <li><img src="/icons/check-circle.svg" alt="Check" className={styles.featureIcon} /> No tech knowledge needed</li>
               <li><img src="/icons/check-circle.svg" alt="Check" className={styles.featureIcon} /> Safe human-like actions</li>
@@ -79,9 +103,8 @@ export default function Home() {
             <p className={styles.callout}>Priority support. Cancel anytime.</p>
             <button className={`${styles.cta} button`} onClick={() => handleCheckout("bloomer")}>Start Growing</button>
           </div>
-
         </div>
-      </div>
+      </section>
 
       {/* Support Section */}
       <section className={styles.supportSection}>
@@ -89,24 +112,15 @@ export default function Home() {
           <h2 className="heading">Need Help or Have Questions?</h2>
           <p>We’re here to support you every step of the way.</p>
           <div className={styles.faqGrid}>
-            <div className={styles.faqItem}>
-              <h3 className="heading">Is this safe to use?</h3>
-              <p>Yes. Vellora uses human-like behaviour with safe limits to reduce risk.</p>
-            </div>
-            <div className={styles.faqItem}>
-              <h3 className="heading">Can I cancel anytime?</h3>
-              <p>Absolutely. There are no contracts. Cancel anytime via Telegram.</p>
-            </div>
-            <div className={styles.faqItem}>
-              <h3 className="heading">How do I change my settings?</h3>
-              <p>You’ll manage your preferences via our Telegram bot at any time.</p>
-            </div>
+            <div className={styles.faqItem}><h3 className="heading">Is this safe to use?</h3><p>Yes. Vellora uses human-like behaviour with safe limits to reduce risk.</p></div>
+            <div className={styles.faqItem}><h3 className="heading">Can I cancel anytime?</h3><p>Absolutely. There are no contracts. Cancel anytime via Telegram.</p></div>
+            <div className={styles.faqItem}><h3 className="heading">How do I change my settings?</h3><p>You’ll manage your preferences via our Telegram bot at any time.</p></div>
           </div>
           <a href="https://t.me/yourtelegramhandle" target="_blank" rel="noopener noreferrer" className={`${styles.cta} button`}>
             Contact Us on Telegram
           </a>
         </div>
       </section>
-    </>
+    </main>
   );
 }

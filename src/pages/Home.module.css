@@ -1,16 +1,16 @@
 /* Hero Section */
 .hero {
+  position: sticky;
+  top: 0;
   height: 100vh;
   background-image: url('/logo-bg.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  position: relative;
-  overflow: visible;
-  line-height: 1.2;
-  letter-spacing: normal;
-  padding-bottom: 0vh; /* Add breathing room to avoid cutting text */
+  background-color: #048451;
+  z-index: 0;
 }
+
 
 /* Scroll Button */
 .scrollBtn {
@@ -138,10 +138,19 @@
 }
 
 /* Why & How Sections */
-.whySection {
-  background-color: #ffffff;
-  
+
+
+/* Push the rest of the content below the hero */
+.whySection,
+.profiles,
+.supportSection {
+  background: #ffffff; /* Fully opaque background */
+  position: relative;
+  z-index: 2;
 }
+
+
+
 
 .whyContainer {
   display: grid;
@@ -319,4 +328,18 @@
   font-size: 1rem;
   font-weight: normal;
   opacity: 0.8;
+}
+
+.scrollContainer {
+  position: relative;
+}
+
+.stickyWrapper {
+  position: relative;
+  overflow: hidden;
+}
+.scrollContent {
+  position: relative;
+  z-index: 2;
+  background: #ffffff;
 }
