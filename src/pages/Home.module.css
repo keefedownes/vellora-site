@@ -275,3 +275,29 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   transform: rotate(5deg);
 }
+
+@media (max-width: 768px) {
+  .sectionTitle {
+    opacity: 0.9 !important; /* Increase visibility on small screens */
+  }
+}
+
+.hero {
+  height: 100vh;
+  background-image: url('/logo-bg.svg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+  background-color: #048451;
+}
+
+/* Mobile specific adjustments */
+@media (max-width: 768px) {
+  .hero {
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: #048451;
+  }
+}
