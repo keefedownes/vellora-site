@@ -67,7 +67,7 @@ export default function Home() {
           <div className={`${styles.profileTile} ${styles.highlight}`}>
             <div className={styles.badge}>Most Popular</div>
             <img src="/icons/flower.svg" alt="Flower icon" className={styles.planIcon} />
-            <h3 className="heading">Bloomer</h3>
+            <h3 className="heading">Blooomer</h3>
             <p>Maximum exposure with full control.</p>
             <ul className={styles.featureList}>
               <li><img src="/icons/infinity.svg" alt="Unlimited actions" className={styles.featureIcon} /> Unlimited actions</li>

@@ -1,11 +1,15 @@
 /* Hero Section */
 .hero {
   height: 100vh;
-  background-image: url('/logo-bg.svg');
+  background-image: url('/logo-bg.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   position: relative;
+  overflow: visible;
+  line-height: 1.2;
+  letter-spacing: normal;
+  padding-bottom: 5vh; /* Add breathing room to avoid cutting text */
 }
 
 /* Scroll Button */
@@ -253,6 +257,7 @@
   font-weight: 800;
 }
 
+/* Badge Styling */
 .badge {
   display: inline-block;
   background: white;
@@ -276,28 +281,17 @@
   transform: rotate(5deg);
 }
 
+/* Mobile Specific Adjustments */
 @media (max-width: 768px) {
   .sectionTitle {
-    opacity: 0.9 !important; /* Increase visibility on small screens */
+    opacity: 0.9 !important;
   }
-}
 
-.hero {
-  height: 100vh;
-  background-image: url('/logo-bg.svg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  position: relative;
-  background-color: #048451;
-}
-
-/* Mobile specific adjustments */
-@media (max-width: 768px) {
   .hero {
     background-size: contain;
-    background-position: center;
+    background-position: center center;
     background-repeat: no-repeat;
     background-color: #048451;
+    padding-bottom: 10vh; /* Extra space for better visibility on small screens */
   }
 }
