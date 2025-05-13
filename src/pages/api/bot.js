@@ -8,23 +8,25 @@ dotenv.config();
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 const bot = new Bot(process.env.BOT_TOKEN);
 
-// Initialize session structure
+// Pre-initialize the bot (await must be handled properly)
+let botReady = false;
+const ensureBotReady = async () => {
+  if (!botReady) {
+    await bot.init();
+    botReady = true;
+  }
+};
+
 function initialSession() {
   return { step: 0, data: {} };
 }
 bot.use(session({ initial: initialSession }));
 
-// Command: /start
 bot.command("start", async (ctx) => {
-  try {
-    ctx.session = initialSession();
-    await ctx.reply("Welcome to the Vellora onboarding process. Please enter your activation code to begin.");
-  } catch (err) {
-    console.error("Start command error:", err);
-  }
+  ctx.session = initialSession();
+  await ctx.reply("Welcome to the Vellora onboarding process. Please enter your activation code to begin.");
 });
 
-// Message handler
 bot.on("message:text", async (ctx) => {
   const { step, data } = ctx.session;
   const text = ctx.message.text.trim();
@@ -116,12 +118,10 @@ bot.on("message:text", async (ctx) => {
   }
 });
 
-// Vercel webhook API route
+// Webhook endpoint for Vercel
 export default async function handler(req, res) {
   try {
-    if (!bot.botInfo) {
-      await bot.init(); // 💡 required for webhook mode
-    }
+    await ensureBotReady();
     await bot.handleUpdate(req.body);
   } catch (err) {
     console.error("Webhook error:", err);
