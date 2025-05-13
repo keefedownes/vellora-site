@@ -1,6 +1,5 @@
 import { buffer } from 'micro';
 import Stripe from 'stripe';
-import { createClient } from '@supabase/supabase-js';
 import supabase from '../../utils/supabaseAdmin';
 
 
@@ -11,7 +10,7 @@ export const config = {
 };
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+
 
 export default async function handler(req, res) {
   const sig = req.headers['stripe-signature'];
