@@ -36,7 +36,11 @@ export default async function handler(req, res) {
   // ✅ Insert into 'activations' table with status 'pending'
   const { error } = await supabase
     .from('activations')
-    .insert([{ code: setupCode, plan, status: 'pending' }]);
+    .upsert(
+      { code: setupCode, plan, status: 'pending' },
+      { onConflict: ['code'] }
+    );
+
 
   if (error) {
     console.error('Supabase insert error:', error);
