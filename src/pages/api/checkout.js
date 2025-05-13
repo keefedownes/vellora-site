@@ -12,9 +12,13 @@ const stripe = new Stripe(stripeSecretKey, { apiVersion: '2022-11-15' });
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    // 🔥 Fix: Always return valid JSON for consistency
+    // ✅ Must return valid JSON here to avoid front-end crash
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
+
+  // your logic continues...
+
+
 
   const { plan } = req.body;
 
