@@ -1,8 +1,41 @@
 import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
 
 export default function Setup() {
   const router = useRouter();
-  const { code } = router.query;
+  const [code, setCode] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCode = async () => {
+      const session_id = router.query.session_id;
+      if (!session_id) return;
+
+      try {
+        const res = await fetch(`/api/get-setup-code?session_id=${session_id}`);
+        const data = await res.json();
+
+        if (data?.code) {
+          setCode(data.code);
+          window.history.replaceState(null, '', '/setup'); // Clean the URL
+        }
+      } catch (err) {
+        console.error('Error fetching code:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCode();
+  }, [router.query]);
+
+  if (loading) {
+    return (
+      <p style={{ textAlign: 'center', padding: '4rem' }}>
+        Loading your setup code...
+      </p>
+    );
+  }
 
   if (!code) {
     return (

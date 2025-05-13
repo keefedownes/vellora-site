@@ -48,8 +48,12 @@ export default async function handler(req, res) {
         quantity: 1,
       }],
       mode: 'payment',
-      success_url: `https://withvellora.com/setup?code=${setupCode}`,
+      success_url: `https://withvellora.com/setup?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: 'https://withvellora.com/cancel',
+      metadata: {
+        setupCode,
+        selectedPlan: plan,
+      }
     });
 
     res.status(200).json({ id: session.id });
