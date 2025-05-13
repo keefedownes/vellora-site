@@ -22,7 +22,6 @@ bot.command("start", async (ctx) => {
   const chatId = ctx.chat.id;
   sessions.set(chatId, { step: 1, data: { chat_id: chatId, status: "pending" } });
 
-  // Create or reset in Supabase
   const { data: existing } = await supabase
     .from("activations")
     .select("*")
@@ -101,7 +100,7 @@ bot.on("message:text", async (ctx) => {
       case 8:
         data.work_hours = text;
         data.status = "used";
-        data.tier = "bloom";
+        data.plan = "bloom"; // ← updated from 'tier'
         data.created_at = new Date().toISOString();
         session.step = 9;
 
@@ -112,17 +111,12 @@ bot.on("message:text", async (ctx) => {
         return ctx.reply("You’ve already completed setup. Type /start to reset.");
     }
 
-    // Save session to Supabase in background
     console.log("Saving to Supabase:", { ...data, step: session.step });
     const { error } = await supabase
-        .from("activations")
-        .upsert({ ...data, step: session.step }, { onConflict: ['chat_id'] });
+      .from("activations")
+      .upsert({ ...data, step: session.step }, { onConflict: ['chat_id'] });
 
-    
     if (error) console.error("Supabase update error:", error);
-
-
-    await supabase.from("activations").upsert({ ...data, step: session.step });
   } catch (err) {
     console.error("Bot error:", err);
     await ctx.reply("An error occurred. Please type /start to begin again.");
