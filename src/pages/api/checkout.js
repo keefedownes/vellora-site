@@ -9,24 +9,30 @@ if (!stripeSecretKey) {
 
 const stripe = new Stripe(stripeSecretKey, { apiVersion: '2022-11-15' });
 
-// 🔁 Ensure generated setupCode doesn't already exist
-async function generateUniqueCode() {
-  let code;
-  let exists = true;
+// 🔁 Insert directly and retry if code already exists
+async function generateUniqueCodeWithRetry(plan) {
+  let attempts = 0;
+  let setupCode;
 
-  while (exists) {
-    code = nanoid(6).toUpperCase();
+  while (attempts < 5) {
+    setupCode = nanoid(6).toUpperCase();
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('activations')
-      .select('code')
-      .eq('code', code)
-      .maybeSingle();
+      .insert([{ code: setupCode, plan, status: 'pending', chat_id: null, step: 1 }]);
 
-    exists = !!data; // true if code already exists
+    if (!error) return setupCode;
+
+    if (error.code === '23505') {
+      // Duplicate key — try again
+      attempts++;
+    } else {
+      // Other error — exit
+      throw new Error(`Supabase insert error: ${error.message}`);
+    }
   }
 
-  return code;
+  throw new Error('Failed to generate a unique setup code after 5 attempts.');
 }
 
 export default async function handler(req, res) {
@@ -46,27 +52,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    const setupCode = await generateUniqueCode();
+    const setupCode = await generateUniqueCodeWithRetry(plan);
 
-    // Insert into Supabase
-    const { error } = await supabase
-      .from('activations')
-      .insert([
-        {
-          code: setupCode,
-          plan,
-          status: 'pending',
-          chat_id: null,
-          step: 1,
-        },
-      ]);
-
-    if (error) {
-      console.error('Supabase insert error:', error);
-      return res.status(500).json({ error: 'Failed to store setup code.' });
-    }
-
-    // Create Stripe session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
