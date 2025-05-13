@@ -2,8 +2,8 @@ import Stripe from 'stripe';
 import { nanoid } from 'nanoid';
 import supabase from '../../utils/supabaseAdmin';
 
-
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+
 if (!stripeSecretKey) {
   throw new Error('STRIPE_SECRET_KEY is not set in environment variables.');
 }
@@ -12,7 +12,8 @@ const stripe = new Stripe(stripeSecretKey, { apiVersion: '2022-11-15' });
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).end('Method Not Allowed');
+    // 🔥 Fix: Always return valid JSON for consistency
+    return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
   const { plan } = req.body;
@@ -28,13 +29,14 @@ export default async function handler(req, res) {
 
   const setupCode = nanoid(6).toUpperCase();
 
+  // ✅ Insert into 'activations' table with status 'pending'
   const { error } = await supabase
-    .from('setup_codes')
-    .insert([{ code: setupCode, used: false }]);
+    .from('activations')
+    .insert([{ code: setupCode, plan, status: 'pending' }]);
 
   if (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Failed to store setup code.' });
+    console.error('Supabase insert error:', error);
+    return res.status(500).json({ error: 'Failed to store activation code.' });
   }
 
   try {
@@ -59,7 +61,7 @@ export default async function handler(req, res) {
 
     res.status(200).json({ id: session.id });
   } catch (err) {
-    console.error(err);
+    console.error('Stripe session error:', err);
     res.status(500).json({ error: 'Failed to create checkout session.' });
   }
 }
