@@ -19,16 +19,11 @@ const initBot = async () => {
 bot.command("start", async (ctx) => {
   const chatId = ctx.chat.id;
 
-  const { data: existing, error } = await supabase
+  const { data: existing } = await supabase
     .from("activations")
     .select("*")
     .eq("chat_id", chatId)
     .maybeSingle();
-
-  if (error) {
-    console.error("Supabase error during /start:", error);
-    return ctx.reply("Something went wrong. Please try again later.");
-  }
 
   if (!existing) {
     await supabase.from("activations").insert([
@@ -36,7 +31,7 @@ bot.command("start", async (ctx) => {
     ]);
   } else {
     await supabase.from("activations")
-      .update({ step: 1 })
+      .update({ step: 1, status: "pending" })
       .eq("chat_id", chatId);
   }
 
@@ -58,15 +53,6 @@ bot.on("message:text", async (ctx) => {
 
   try {
     if (step === 1) {
-      const { data: activation, error } = await supabase
-        .from("activations")
-        .select("*")
-        .eq("code", text.toLowerCase())
-        .eq("status", "pending")
-        .maybeSingle();
-
-      if (!activation || error) return ctx.reply("Invalid or already used activation code.");
-
       await supabase.from("activations").update({
         code: text.toLowerCase(),
         step: 2
@@ -162,7 +148,6 @@ bot.on("message:text", async (ctx) => {
   }
 });
 
-// Webhook handler for Vercel
 export default async function handler(req, res) {
   try {
     await initBot();
