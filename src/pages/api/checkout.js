@@ -1,6 +1,7 @@
 import Stripe from 'stripe';
 import { nanoid } from 'nanoid';
-import supabase from '../../supabase';
+import supabase from '../../utils/supabaseAdmin';
+
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 if (!stripeSecretKey) {
