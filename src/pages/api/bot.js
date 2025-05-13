@@ -116,7 +116,8 @@ bot.on("message:text", async (ctx) => {
     console.log("Saving to Supabase:", { ...data, step: session.step });
     const { error } = await supabase
         .from("activations")
-        .upsert({ ...data, step: session.step }, {onConflict: ['chat_id']});
+        .upsert({ ...data, step: session.step }, { onConflict: ['chat_id'] });
+
     
     if (error) console.error("Supabase update error:", error);
 
