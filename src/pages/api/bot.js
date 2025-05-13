@@ -8,6 +8,8 @@ dotenv.config();
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 const bot = new Bot(process.env.BOT_TOKEN);
 
+const sessions = new Map(); // key: chat_id, value: { step, data }
+
 let botInitialized = false;
 const initBot = async () => {
   if (!botInitialized) {
@@ -19,131 +21,94 @@ const initBot = async () => {
 bot.command("start", async (ctx) => {
   const chatId = ctx.chat.id;
 
-  const { data: existing } = await supabase
-    .from("activations")
-    .select("*")
-    .eq("chat_id", chatId)
-    .maybeSingle();
+  // Load or create session
+  let session = sessions.get(chatId);
 
-  if (!existing) {
-    await supabase.from("activations").insert([
-      { chat_id: chatId, step: 1, status: "pending" }
-    ]);
+  if (!session) {
+    const { data: row } = await supabase
+      .from("activations")
+      .select("*")
+      .eq("chat_id", chatId)
+      .maybeSingle();
+
+    if (row) {
+      session = { step: row.step || 1, data: row };
+    } else {
+      await supabase.from("activations").insert([{ chat_id: chatId, step: 1, status: "pending" }]);
+      session = { step: 1, data: { chat_id: chatId, status: "pending" } };
+    }
+
+    sessions.set(chatId, session);
   } else {
-    await supabase.from("activations")
-      .update({ step: 1, status: "pending" })
-      .eq("chat_id", chatId);
+    session.step = 1;
   }
 
-  return ctx.reply("Welcome to the Vellora onboarding process. Please enter your activation code to begin.");
+  await ctx.reply("Welcome to the Vellora onboarding process. Please enter your activation code to begin.");
 });
 
 bot.on("message:text", async (ctx) => {
   const chatId = ctx.chat.id;
   const text = ctx.message.text.trim();
 
-  const { data: row } = await supabase
-    .from("activations")
-    .select("*")
-    .eq("chat_id", chatId)
-    .maybeSingle();
+  const session = sessions.get(chatId);
+  if (!session) return ctx.reply("Please type /start to begin.");
 
-  if (!row) return ctx.reply("Please type /start first.");
-  const step = row.step || 1;
+  const step = session.step;
+  const data = session.data;
 
   try {
     if (step === 1) {
-      await supabase.from("activations").update({
-        code: text.toLowerCase(),
-        step: 2
-      }).eq("chat_id", chatId);
-
-      return ctx.reply("Activation code accepted. What is your full name?");
-    }
-
-    if (step === 2) {
-      await supabase.from("activations").update({
-        name: text,
-        step: 3
-      }).eq("chat_id", chatId);
-
-      return ctx.reply("What is your Instagram handle?");
-    }
-
-    if (step === 3) {
-      await supabase.from("activations").update({
-        handle: text.replace("@", ""),
-        step: 4
-      }).eq("chat_id", chatId);
-
-      return ctx.reply("Please enter your Instagram password. This message will be deleted after processing.");
-    }
-
-    if (step === 4) {
+      data.code = text.toLowerCase();
+      session.step = 2;
+      await ctx.reply("Activation code accepted. What is your full name?");
+    } else if (step === 2) {
+      data.name = text;
+      session.step = 3;
+      await ctx.reply("What is your Instagram handle?");
+    } else if (step === 3) {
+      data.handle = text.replace("@", "");
+      session.step = 4;
+      await ctx.reply("Please enter your Instagram password. This message will be deleted after processing.");
+    } else if (step === 4) {
       await ctx.api.deleteMessage(chatId, ctx.msg.message_id);
-      const hash = await bcrypt.hash(text, 10);
-
-      await supabase.from("activations").update({
-        password_hash: hash,
-        step: 5
-      }).eq("chat_id", chatId);
-
-      return ctx.reply("How would you like to target your engagement? Type 'hashtags' or 'accounts'.");
-    }
-
-    if (step === 5) {
-      let targeting = null;
+      data.password_hash = await bcrypt.hash(text, 10);
+      session.step = 5;
+      await ctx.reply("How would you like to target your engagement? Type 'hashtags' or 'accounts'.");
+    } else if (step === 5) {
       if (text.toLowerCase().includes("hash")) {
-        targeting = { type: "hashtags", list: [] };
+        data.targeting = { type: "hashtags", list: [] };
+        session.step = 6;
+        await ctx.reply("List up to 5 hashtags, separated by commas.");
       } else if (text.toLowerCase().includes("account")) {
-        targeting = { type: "accounts", list: [] };
+        data.targeting = { type: "accounts", list: [] };
+        session.step = 6;
+        await ctx.reply("List up to 5 account usernames, separated by commas.");
+      } else {
+        return ctx.reply("Please type 'hashtags' or 'accounts'.");
       }
-
-      if (!targeting) return ctx.reply("Please type 'hashtags' or 'accounts'.");
-
-      await supabase.from("activations").update({
-        targeting,
-        step: 6
-      }).eq("chat_id", chatId);
-
-      return ctx.reply(`List up to 5 ${targeting.type}, separated by commas.`);
+    } else if (step === 6) {
+      data.targeting.list = text.split(",").map((s) => s.trim().replace("@", "")).slice(0, 5);
+      session.step = 7;
+      await ctx.reply("Would you like to unfollow accounts that don’t follow you back? (yes/no)");
+    } else if (step === 7) {
+      data.unfollow = text.toLowerCase().startsWith("y");
+      session.step = 8;
+      await ctx.reply("What working hours should we manage your account? (e.g. 09:00-17:00)");
+    } else if (step === 8) {
+      data.work_hours = text;
+      data.status = "used";
+      data.tier = "bloom";
+      data.created_at = new Date().toISOString();
+      session.step = 9;
+      await ctx.reply("Setup complete. Thank you for joining Vellora.");
     }
 
-    if (step === 6) {
-      const list = text.split(",").map((s) => s.trim().replace("@", "")).slice(0, 5);
-
-      await supabase.from("activations").update({
-        targeting: { ...row.targeting, list },
-        step: 7
-      }).eq("chat_id", chatId);
-
-      return ctx.reply("Would you like to unfollow accounts that don’t follow you back? (yes/no)");
-    }
-
-    if (step === 7) {
-      const unfollow = text.toLowerCase().startsWith("y");
-
-      await supabase.from("activations").update({
-        unfollow,
-        step: 8
-      }).eq("chat_id", chatId);
-
-      return ctx.reply("What working hours should we manage your account? (e.g. 09:00-17:00)");
-    }
-
-    if (step === 8) {
-      await supabase.from("activations").update({
-        work_hours: text,
-        status: "used",
-        tier: "bloom",
-        step: 9,
-        created_at: new Date().toISOString()
-      }).eq("chat_id", chatId);
-
-      return ctx.reply("Setup complete. Thank you for joining Vellora.");
-    }
+    // ✅ Update Supabase in the background (not blocking bot)
+    await supabase.from("activations")
+      .update({ ...data, step: session.step })
+      .eq("chat_id", chatId);
   } catch (err) {
-    console.error("Step error:", err);
+    console.error("Error in step", step, err);
     return ctx.reply("An unexpected error occurred. Please try again.");
   }
 });
