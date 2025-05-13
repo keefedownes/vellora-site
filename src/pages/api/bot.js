@@ -8,7 +8,7 @@ dotenv.config();
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 const bot = new Bot(process.env.BOT_TOKEN);
 
-// Pre-initialize the bot (await must be handled properly)
+// Ensure bot.init() is only called once
 let botReady = false;
 const ensureBotReady = async () => {
   if (!botReady) {
@@ -20,14 +20,21 @@ const ensureBotReady = async () => {
 function initialSession() {
   return { step: 0, data: {} };
 }
+
 bot.use(session({ initial: initialSession }));
 
+// Guarded command
 bot.command("start", async (ctx) => {
+  if (!ctx.chat || ctx.chat.type !== "private") return;
+
   ctx.session = initialSession();
   await ctx.reply("Welcome to the Vellora onboarding process. Please enter your activation code to begin.");
 });
 
+// Main interaction handler (only for private chat text)
 bot.on("message:text", async (ctx) => {
+  if (!ctx.chat || ctx.chat.type !== "private") return;
+
   const { step, data } = ctx.session;
   const text = ctx.message.text.trim();
 
@@ -122,7 +129,11 @@ bot.on("message:text", async (ctx) => {
 export default async function handler(req, res) {
   try {
     await ensureBotReady();
-    await bot.handleUpdate(req.body);
+
+    // Only process updates that are from valid message/chat sources
+    if (req.body.message && req.body.message.chat?.type === "private") {
+      await bot.handleUpdate(req.body);
+    }
   } catch (err) {
     console.error("Webhook error:", err);
   }
