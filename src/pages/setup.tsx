@@ -4,12 +4,15 @@ import { useEffect, useState } from 'react';
 export default function Setup() {
   const router = useRouter();
   const [code, setCode] = useState('');
+  const [plan, setPlan] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!router.isReady) return;
+
     const fetchCode = async () => {
       const session_id = router.query.session_id;
-      if (!session_id) return;
+      if (!session_id || typeof session_id !== 'string') return;
 
       try {
         const res = await fetch(`/api/get-setup-code?session_id=${session_id}`);
@@ -17,7 +20,8 @@ export default function Setup() {
 
         if (data?.code) {
           setCode(data.code);
-          window.history.replaceState(null, '', '/setup'); // Clean the URL
+          setPlan(data.plan);
+          window.history.replaceState(null, '', '/setup'); // clean the URL
         }
       } catch (err) {
         console.error('Error fetching code:', err);
@@ -27,7 +31,7 @@ export default function Setup() {
     };
 
     fetchCode();
-  }, [router.query]);
+  }, [router.isReady, router.query]);
 
   if (loading) {
     return (
