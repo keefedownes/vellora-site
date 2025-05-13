@@ -5,130 +5,145 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const bot = new Bot(process.env.BOT_TOKEN);
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
-
-// Helper to fetch activation row
-const getUserRow = async (id) => {
-  const { data, error } = await supabase
-    .from("activations")
-    .select("*")
-    .eq("telegram_id", id)
-    .single();
-  return { data, error };
-};
+const bot = new Bot(process.env.BOT_TOKEN);
 
 bot.command("start", async (ctx) => {
-  const userId = ctx.from.id;
+  const chatId = ctx.chat.id;
 
-  // Reset or create new record
-  await supabase
-    .from("activations")
-    .upsert({ telegram_id: userId, step: 0, status: "pending" }, { onConflict: ["telegram_id"] });
+  try {
+    const { data: existing } = await supabase
+      .from("activations")
+      .select("*")
+      .eq("chat_id", chatId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .single();
 
-  await ctx.reply("Welcome to Vellora. Please enter your activation code.");
+    if (!existing) {
+      await supabase.from("activations").insert([{ chat_id: chatId, step: 1 }]);
+    } else {
+      await supabase.from("activations").update({ step: 1 }).eq("chat_id", chatId);
+    }
+
+    await ctx.reply("Welcome to the Vellora onboarding process. Please enter your activation code to begin.");
+  } catch (err) {
+    console.error("Start command error:", err);
+    await ctx.reply("An error occurred. Please try again later.");
+  }
 });
 
 bot.on("message:text", async (ctx) => {
-  const userId = ctx.from.id;
+  const chatId = ctx.chat.id;
   const text = ctx.message.text.trim();
-  const { data: row, error } = await getUserRow(userId);
-
-  if (error || !row) return ctx.reply("Please type /start first.");
-
-  const step = row.step;
 
   try {
-    if (step === 0) {
-      const { data: codeRow } = await supabase
+    const { data: row } = await supabase
+      .from("activations")
+      .select("*")
+      .eq("chat_id", chatId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .single();
+
+    if (!row) {
+      await ctx.reply("Please type /start first.");
+      return;
+    }
+
+    const step = row.step || 1;
+
+    if (step === 1) {
+      const { data: activation, error } = await supabase
         .from("activations")
         .select("*")
         .eq("code", text.toLowerCase())
         .eq("status", "pending")
         .single();
 
-      if (!codeRow) return ctx.reply("Invalid or already used activation code.");
+      if (!activation || error) {
+        return ctx.reply("Invalid or already used activation code.");
+      }
 
       await supabase
         .from("activations")
-        .update({ code: text.toLowerCase(), step: 1 })
-        .eq("telegram_id", userId);
+        .update({ code: text.toLowerCase(), step: 2 })
+        .eq("chat_id", chatId);
 
       return ctx.reply("Activation code accepted. What is your full name?");
     }
 
-    if (step === 1) {
-      await supabase.from("activations").update({ name: text, step: 2 }).eq("telegram_id", userId);
+    if (step === 2) {
+      await supabase.from("activations").update({ name: text, step: 3 }).eq("chat_id", chatId);
       return ctx.reply("What is your Instagram handle?");
     }
 
-    if (step === 2) {
-      const handle = text.replace(/@/, "");
-      await supabase.from("activations").update({ handle, step: 3 }).eq("telegram_id", userId);
-      return ctx.reply("Please enter your Instagram password (this message will be deleted).");
-    }
-
     if (step === 3) {
-      await ctx.api.deleteMessage(ctx.chat.id, ctx.msg.message_id);
-      const hash = await bcrypt.hash(text, 10);
-      await supabase.from("activations").update({ password_hash: hash, step: 4 }).eq("telegram_id", userId);
-      return ctx.reply("How would you like to target? Type 'hashtags' or 'accounts'.");
+      await supabase.from("activations").update({ handle: text.replace("@", ""), step: 4 }).eq("chat_id", chatId);
+      return ctx.reply("Please enter your Instagram password. This message will be deleted after processing.");
     }
 
     if (step === 4) {
-      if (text.toLowerCase().includes("hash")) {
-        await supabase.from("activations").update({
-          targeting: JSON.stringify({ type: "hashtags", list: [] }),
-          step: 5,
-        }).eq("telegram_id", userId);
-        return ctx.reply("List up to 5 hashtags separated by commas.");
-      } else if (text.toLowerCase().includes("account")) {
-        await supabase.from("activations").update({
-          targeting: JSON.stringify({ type: "accounts", list: [] }),
-          step: 5,
-        }).eq("telegram_id", userId);
-        return ctx.reply("List up to 5 account usernames separated by commas.");
-      } else {
-        return ctx.reply("Please type either 'hashtags' or 'accounts'.");
-      }
+      await ctx.api.deleteMessage(chatId, ctx.msg.message_id);
+      const hashed = await bcrypt.hash(text, 10);
+
+      await supabase.from("activations").update({ password_hash: hashed, step: 5 }).eq("chat_id", chatId);
+      return ctx.reply("How would you like to target your engagement? Type 'hashtags' or 'accounts'.");
     }
 
     if (step === 5) {
-      const cleanedList = text.split(",").map((s) => s.trim().replace("@", "")).slice(0, 5);
-      const targeting = { ...JSON.parse(row.targeting), list: cleanedList };
-
-      await supabase.from("activations").update({ targeting: JSON.stringify(targeting), step: 6 }).eq("telegram_id", userId);
-      return ctx.reply("Would you like to unfollow accounts that don’t follow you back? (yes/no)");
+      if (text.toLowerCase().includes("hash")) {
+        await supabase.from("activations").update({
+          targeting: { type: "hashtags", list: [] },
+          step: 6,
+        }).eq("chat_id", chatId);
+        return ctx.reply("List up to 5 hashtags, separated by commas.");
+      } else if (text.toLowerCase().includes("account")) {
+        await supabase.from("activations").update({
+          targeting: { type: "accounts", list: [] },
+          step: 6,
+        }).eq("chat_id", chatId);
+        return ctx.reply("List up to 5 account usernames, separated by commas.");
+      } else {
+        return ctx.reply("Please type 'hashtags' or 'accounts'.");
+      }
     }
 
     if (step === 6) {
-      const unfollow = text.toLowerCase().startsWith("y");
-      await supabase.from("activations").update({ unfollow, step: 7 }).eq("telegram_id", userId);
-      return ctx.reply("What working hours should we manage your account? (e.g. 09:00-17:00)");
+      const targeting = {
+        type: row.targeting?.type,
+        list: text.split(",").map((s) => s.trim().replace("@", "")).slice(0, 5),
+      };
+      await supabase.from("activations").update({ targeting, step: 7 }).eq("chat_id", chatId);
+      return ctx.reply("Would you like to unfollow accounts that don’t follow you back? (yes/no)");
     }
 
     if (step === 7) {
+      const unfollow = text.toLowerCase().startsWith("y");
+      await supabase.from("activations").update({ unfollow, step: 8 }).eq("chat_id", chatId);
+      return ctx.reply("What working hours should we manage your account? (e.g. 09:00-17:00)");
+    }
+
+    if (step === 8) {
       await supabase.from("activations").update({
         work_hours: text,
-        step: 8,
         status: "used",
         tier: "bloom",
         created_at: new Date().toISOString(),
-      }).eq("telegram_id", userId);
+        step: 9,
+      }).eq("chat_id", chatId);
 
-      return ctx.reply("Your setup is now complete. Welcome to Vellora.");
+      return ctx.reply("Setup complete. Thank you for joining Vellora.");
     }
-
-    return ctx.reply("You’ve already completed setup. Type /start to reset.");
   } catch (err) {
-    console.error("Bot flow error:", err);
-    return ctx.reply("An error occurred. Please try again.");
+    console.error("Message error:", err);
+    return ctx.reply("Something went wrong. Please try again.");
   }
 });
 
+// Vercel webhook handler
 export default async function handler(req, res) {
   try {
-    await bot.init();
     await bot.handleUpdate(req.body);
   } catch (err) {
     console.error("Webhook error:", err);
