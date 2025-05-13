@@ -1,9 +1,6 @@
-// /api/bot.js — Vercel Serverless API Route for grammY webhook bot
 import { Bot, session } from "grammy";
 import { createClient } from "@supabase/supabase-js";
 import bcrypt from "bcrypt";
-import fs from "fs";
-import path from "path";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -21,7 +18,7 @@ bot.command("start", async (ctx) => {
     ctx.session = initialSession();
     await ctx.reply("Welcome to the Vellora onboarding process. Please enter your activation code to begin.");
   } catch (err) {
-    console.error("/start failed:", err);
+    console.error("Start command error:", err);
   }
 });
 
@@ -39,7 +36,6 @@ bot.on("message:text", async (ctx) => {
         .single();
 
       if (error || !row) return ctx.reply("Invalid or already used activation code.");
-
       ctx.session.data.code = text.toLowerCase();
       ctx.session.step++;
       return ctx.reply("Activation code accepted. What is your full name?");
@@ -68,13 +64,13 @@ bot.on("message:text", async (ctx) => {
       if (text.toLowerCase().includes("hash")) {
         data.targeting = { type: "hashtags", list: [] };
         ctx.session.step++;
-        return ctx.reply("Please list up to 5 hashtags, separated by commas.");
+        return ctx.reply("List up to 5 hashtags, separated by commas.");
       } else if (text.toLowerCase().includes("account")) {
         data.targeting = { type: "accounts", list: [] };
         ctx.session.step++;
-        return ctx.reply("Please list up to 5 Instagram usernames, separated by commas.");
+        return ctx.reply("List up to 5 account usernames, separated by commas.");
       } else {
-        return ctx.reply("Please respond with either 'hashtags' or 'accounts'.");
+        return ctx.reply("Please type 'hashtags' or 'accounts'.");
       }
     }
 
@@ -87,7 +83,7 @@ bot.on("message:text", async (ctx) => {
     if (step === 6) {
       data.unfollow = text.toLowerCase().startsWith("y");
       ctx.session.step++;
-      return ctx.reply("Please specify the time range we should manage your account (e.g., 09:00-17:00).");
+      return ctx.reply("What working hours should we manage your account? (e.g. 09:00-17:00)");
     }
 
     if (step === 7) {
@@ -104,39 +100,25 @@ bot.on("message:text", async (ctx) => {
         .eq("code", data.code);
 
       if (updateError) {
-        console.error("Supabase update failed:", updateError);
+        console.error("Supabase update error:", updateError);
         return ctx.reply("There was a problem saving your information. Please try again.");
       }
 
-      try {
-        const filename = path.join("/tmp", `${data.handle}.json`);
-        fs.writeFileSync(filename, JSON.stringify({
-          username: data.handle,
-          device: `auto-${Date.now()}`,
-          engagement: data.targeting,
-          unfollow: data.unfollow,
-          hours: data.work_hours,
-        }, null, 2));
-      } catch (err) {
-        console.error("File write error:", err);
-        return ctx.reply("There was a problem saving your configuration file.");
-      }
-
       ctx.session = initialSession();
-      return ctx.reply("Your setup is complete. Thank you for joining Vellora.");
+      return ctx.reply("Setup complete. Thank you for joining Vellora.");
     }
   } catch (err) {
-    console.error("Unhandled error:", err);
-    return ctx.reply("An unexpected error occurred. Please try again later.");
+    console.error("Message error:", err);
+    return ctx.reply("An unexpected error occurred. Please try again.");
   }
 });
 
-// Webhook-compatible Vercel export
+// Vercel webhook handler
 export default async function handler(req, res) {
   try {
     await bot.handleUpdate(req.body);
   } catch (err) {
-    console.error("Telegram webhook error:", err);
+    console.error("Webhook error:", err);
   }
   res.status(200).end();
 }
