@@ -2,17 +2,19 @@ import { Bot, session } from "grammy";
 import { createClient } from "@supabase/supabase-js";
 import bcrypt from "bcrypt";
 import dotenv from "dotenv";
+
 dotenv.config();
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 const bot = new Bot(process.env.BOT_TOKEN);
 
+// Initialize session structure
 function initialSession() {
   return { step: 0, data: {} };
 }
-
 bot.use(session({ initial: initialSession }));
 
+// Command: /start
 bot.command("start", async (ctx) => {
   try {
     ctx.session = initialSession();
@@ -22,6 +24,7 @@ bot.command("start", async (ctx) => {
   }
 });
 
+// Message handler
 bot.on("message:text", async (ctx) => {
   const { step, data } = ctx.session;
   const text = ctx.message.text.trim();
@@ -113,9 +116,12 @@ bot.on("message:text", async (ctx) => {
   }
 });
 
-// Vercel webhook handler
+// Vercel webhook API route
 export default async function handler(req, res) {
   try {
+    if (!bot.botInfo) {
+      await bot.init(); // 💡 required for webhook mode
+    }
     await bot.handleUpdate(req.body);
   } catch (err) {
     console.error("Webhook error:", err);
